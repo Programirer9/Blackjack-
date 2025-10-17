@@ -3,64 +3,115 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Blackjack — GitHub Pages Demo mit Einsatz & Animation</title>
+  <title>Blackjack — Felt Table Edition</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main class="container">
-    <h1>Blackjack</h1>
+  <div class="page-bg">
+    <main class="table-wrapper">
+      <header class="topbar">
+        <div class="logo">
+          <span class="logo-chip">BJ</span>
+          <div>
+            <h1>Blackjack</h1>
+            <p class="subtitle">Felt Table Edition</p>
+          </div>
+        </div>
 
-    <section class="statusbar">
-      <div class="bankroll">
-        <label>Bankroll: <span id="bankroll">1000</span> €</label>
-      </div>
-      <div class="bet">
-        <label for="bet-input">Einsatz (€):</label>
-        <input type="number" id="bet-input" min="1" step="1" value="10" />
-      </div>
-      <div class="controls-short">
-        <button id="btn-deal">Geben</button>
-        <button id="btn-reset">Reset</button>
-      </div>
-    </section>
+        <div class="bankroll-panel">
+          <div class="bankroll-label">Bankroll</div>
+          <div class="bankroll-amount"><span id="bankroll">1000</span> €</div>
+        </div>
+      </header>
 
-    <section class="table">
-      <div class="hand dealer">
-        <h2>Dealer</h2>
-        <div class="cards" id="dealer-cards"></div>
-        <div class="score" id="dealer-score">—</div>
-      </div>
+      <section class="table-surface">
+        <!-- semicircular table with dealer area on top -->
+        <div class="table-top">
+          <div class="dealer-zone">
+            <div class="zone-label">Dealer</div>
+            <div class="cards" id="dealer-cards" aria-live="polite"></div>
+            <div class="score" id="dealer-score">—</div>
+          </div>
 
-      <div class="hand player">
-        <h2>Du</h2>
-        <div class="cards" id="player-cards"></div>
-        <div class="score" id="player-score">—</div>
-      </div>
-    </section>
+          <div class="table-inner-glow"></div>
 
-    <section class="controls">
-      <div class="buttons">
-        <button id="btn-hit" disabled>Hit</button>
-        <button id="btn-stand" disabled>Stand</button>
-      </div>
+          <div class="player-zone">
+            <div class="zone-label">Du</div>
+            <div class="cards" id="player-cards" aria-live="polite"></div>
+            <div class="score" id="player-score">—</div>
+          </div>
+        </div>
+      </section>
 
-      <div class="info">
-        <p id="message">Gib deinen Einsatz ein und drücke „Geben“. </p>
-        <p id="last-result" class="muted"></p>
-      </div>
-    </section>
+      <section class="controls-panel">
+        <div class="bet-controls">
+          <label for="bet-input" class="bet-label">Einsatz (€)</label>
+          <input type="number" id="bet-input" min="1" step="1" value="10" />
+          <div class="chip-row" role="toolbar" aria-label="Quick Bets">
+            <button class="chip" data-bet="5">5</button>
+            <button class="chip" data-bet="10">10</button>
+            <button class="chip" data-bet="25">25</button>
+            <button class="chip" data-bet="50">50</button>
+            <button class="chip" data-bet="100">100</button>
+            <button class="chip" data-bet="all">ALL-IN</button>
+          </div>
+        </div>
 
-    <section class="rules">
-      <h3>Kurzregeln</h3>
-      <ul>
-        <li>Ziel: näher an 21 sein als der Dealer, ohne darüber zu gehen.</li>
-        <li>Asse zählen als 1 oder 11 (automatisch günstig ausgewertet).</li>
-        <li>Dealer zieht bis mindestens 17.</li>
-        <li>Blackjack (natürlich) zahlt 3:2.</li>
-      </ul>
-    </section>
-  </main>
+        <div class="action-controls">
+          <button id="btn-deal" class="btn btn-deal">Geben</button>
+          <button id="btn-hit" class="btn btn-hit" disabled>Hit</button>
+          <button id="btn-stand" class="btn btn-stand" disabled>Stand</button>
+          <button id="btn-reset" class="btn btn-reset">Reset</button>
+        </div>
+
+        <div class="messages">
+          <p id="message" class="message">Gib deinen Einsatz ein und drücke „Geben“.</p>
+          <p id="last-result" class="muted"></p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="rules">
+          <strong>Regeln:</strong> Ziel: näher an 21 sein als der Dealer. As = 1 oder 11. Dealer zieht bis 17. Blackjack zahlt 3:2.
+        </div>
+        <div class="credits">Design: Felt Table • Demo</div>
+      </footer>
+    </main>
+  </div>
 
   <script src="app.js"></script>
+
+  <!-- kleines UI-Skript für Chips (ändert nur Bet-Feld; hält app.js unverändert) -->
+  <script>
+    (function(){
+      const chips = document.querySelectorAll('.chip');
+      const betInput = document.getElementById('bet-input');
+      const bankrollEl = document.getElementById('bankroll');
+
+      function parseBankroll(){
+        const v = parseInt(bankrollEl.textContent.replace(/\\D/g,''), 10);
+        return Number.isFinite(v) ? v : 0;
+      }
+
+      chips.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.bet;
+          const bankroll = parseBankroll();
+          if (val === 'all') {
+            betInput.value = Math.max(1, bankroll);
+          } else {
+            const add = parseInt(val,10) || 0;
+            const cur = parseInt(betInput.value || '0',10) || 0;
+            betInput.value = Math.max(1, Math.min(bankroll, cur + add));
+          }
+          // small pulse effect
+          btn.classList.add('chip-active');
+          setTimeout(()=>btn.classList.remove('chip-active'),220);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
