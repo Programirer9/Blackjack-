@@ -1,1 +1,14 @@
+(Ersetze ggf. mit deinem Namen/datum — die vollständige MIT-Lizenz kannst du unverändert übernehmen.)
 
+---
+
+# Schritt 2 — Dateien hinzufügen, committen und pushen
+Führe im Projektordner aus:
+
+```bash
+git add .
+git commit -m "Initial commit — Blackjack (static)"
+# Ersetze die URL durch dein Repo
+git remote add origin https://github.com/<DEIN_USER>/<REPO>.git
+git branch -M main
+git push -u origin main
