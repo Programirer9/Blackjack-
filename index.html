@@ -3,12 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Blackjack — GitHub Pages Demo</title>
+  <title>Blackjack — GitHub Pages Demo mit Einsatz & Animation</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="container">
     <h1>Blackjack</h1>
+
+    <section class="statusbar">
+      <div class="bankroll">
+        <label>Bankroll: <span id="bankroll">1000</span> €</label>
+      </div>
+      <div class="bet">
+        <label for="bet-input">Einsatz (€):</label>
+        <input type="number" id="bet-input" min="1" step="1" value="10" />
+      </div>
+      <div class="controls-short">
+        <button id="btn-deal">Geben</button>
+        <button id="btn-reset">Reset</button>
+      </div>
+    </section>
 
     <section class="table">
       <div class="hand dealer">
@@ -26,14 +40,13 @@
 
     <section class="controls">
       <div class="buttons">
-        <button id="btn-deal">Geben</button>
         <button id="btn-hit" disabled>Hit</button>
         <button id="btn-stand" disabled>Stand</button>
-        <button id="btn-reset">Reset</button>
       </div>
 
       <div class="info">
-        <p id="message">Drücke „Geben“, um zu starten.</p>
+        <p id="message">Gib deinen Einsatz ein und drücke „Geben“. </p>
+        <p id="last-result" class="muted"></p>
       </div>
     </section>
 
@@ -43,6 +56,7 @@
         <li>Ziel: näher an 21 sein als der Dealer, ohne darüber zu gehen.</li>
         <li>Asse zählen als 1 oder 11 (automatisch günstig ausgewertet).</li>
         <li>Dealer zieht bis mindestens 17.</li>
+        <li>Blackjack (natürlich) zahlt 3:2.</li>
       </ul>
     </section>
   </main>
