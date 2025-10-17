@@ -1,5 +1,6 @@
-// Blackjack mit Einsatz & Kartenanimationen
-// Autor: Demo (erweiterte Version)
+// Blackjack mit Einsatz & Kartenanimationen (erweiterte Bankroll-Visualisierung)
+// Wenn du diese Datei komplett ersetzt, benutzte die zuvor gelieferte Version der Spiel-Logik.
+// --- Hier konzentrieren wir uns auf die Bankroll UI-Updates ---
 
 /* ---------- DOM ---------- */
 const dealerCardsDiv = document.getElementById('dealer-cards');
@@ -15,6 +16,7 @@ const btnStand = document.getElementById('btn-stand');
 const btnReset = document.getElementById('btn-reset');
 
 const bankrollEl = document.getElementById('bankroll');
+const bankrollStackEl = document.getElementById('bankroll-stack');
 const betInput = document.getElementById('bet-input');
 
 let deck = [];
@@ -24,7 +26,7 @@ let gameOver = false;
 let bankroll = 1000;
 let currentBet = 0;
 
-/* ---------- Kartendeck & Hilfen ---------- */
+/* ---------- Kartendeck & Hilfen (gleich wie vorher) ---------- */
 function createDeck() {
   const suits = ['♠','♥','♦','♣'];
   const ranks = [
@@ -71,9 +73,8 @@ function bestScore(cards) {
   return total;
 }
 
-/* ---------- UI: render + animation ---------- */
+/* ---------- UI: render + animation (gleich wie vorher, kürze ich hier) ---------- */
 function createCardElement(card, faceDown = false) {
-  // wrapper for flip perspective
   const wrapper = document.createElement('div');
   wrapper.className = 'flip-wrapper';
   const flipper = document.createElement('div');
@@ -87,16 +88,14 @@ function createCardElement(card, faceDown = false) {
   back.className = 'backface';
   back.innerHTML = '🂠';
 
-  // place card faces in flipper
   flipper.appendChild(front);
   flipper.appendChild(back);
   wrapper.appendChild(flipper);
 
   if (faceDown) {
-    flipper.classList.add('flipped'); // show back initially
+    flipper.classList.add('flipped');
   }
 
-  // attach meta for reference
   wrapper._card = card;
   wrapper._flipper = flipper;
   wrapper._front = front;
@@ -105,24 +104,18 @@ function createCardElement(card, faceDown = false) {
 }
 
 function animateDeal(element, container, delay=0, faceDown=false) {
-  // add to DOM but hidden, then trigger animation
   element.style.opacity = '0';
   container.appendChild(element);
-  // small timeout to ensure CSS can pick up animation
   setTimeout(() => {
-    // add card element class to face (for animation) — we animate the front container
     const cardFace = element.querySelector('.card') || element.querySelector('.face');
     if (cardFace) {
       cardFace.classList.add('deal-anim');
     }
     element.style.opacity = '1';
-    // after animation, ensure it's visible normally
     setTimeout(() => {
       if (cardFace) cardFace.classList.remove('deal-anim');
     }, 420);
-    // if facedown -> leave flipped; if not facedown -> flip to reveal after short time
     if (!faceDown) {
-      // small reveal delay so it looks like dealing
       setTimeout(() => {
         flipToFront(element);
       }, 220);
@@ -131,7 +124,6 @@ function animateDeal(element, container, delay=0, faceDown=false) {
 }
 
 function flipToFront(wrapper) {
-  // remove flipped if present to show front
   if (!wrapper || !wrapper._flipper) return;
   wrapper._flipper.classList.remove('flipped');
 }
@@ -155,9 +147,8 @@ function updateScores(hideDealerFirst=false) {
   }
 }
 
-/* ---------- Spiel-Flow mit animiertem Deal ---------- */
+/* ---------- Spiel-Flow mit animiertem Deal (gleich wie vorher) ---------- */
 function dealInitial() {
-  // validate bet
   const bet = parseInt(betInput.value, 10);
   if (!Number.isFinite(bet) || bet <= 0) {
     msg.textContent = 'Setze einen gültigen Einsatz (größer 0).';
@@ -169,10 +160,9 @@ function dealInitial() {
   }
 
   currentBet = bet;
-  bankroll -= currentBet; // reserve Einsatz
+  bankroll -= currentBet; // reserve
   updateBankrollUI();
 
-  // Vorbereitung
   deck = shuffle(createDeck());
   player = [];
   dealer = [];
@@ -186,27 +176,22 @@ function dealInitial() {
 
   msg.textContent = 'Teilt...';
 
-  // Animierter, sequenzieller Deal: P, D (verdeckt), P, D
-  // Wir bauen DOM-Elemente und animieren nacheinander
   player.push(deck.pop());
   dealer.push(deck.pop());
   player.push(deck.pop());
   dealer.push(deck.pop());
 
-  // create elements (dealer first card face-down)
   const p1 = createCardElement(player[0], false);
-  const d1 = createCardElement(dealer[0], true); // facedown
+  const d1 = createCardElement(dealer[0], true);
   const p2 = createCardElement(player[1], false);
   const d2 = createCardElement(dealer[1], false);
 
-  // sequence of dealing with delays
   let t = 0;
   animateDeal(p1, playerCardsDiv, t += 160, false);
   animateDeal(d1, dealerCardsDiv, t += 220, true);
   animateDeal(p2, playerCardsDiv, t += 220, false);
   animateDeal(d2, dealerCardsDiv, t += 220, false);
 
-  // after finishing deal, enable actions and check immediate blackjack
   setTimeout(() => {
     btnHit.disabled = false;
     btnStand.disabled = false;
@@ -219,18 +204,15 @@ function dealInitial() {
 function checkForImmediateBlackjack() {
   const pScore = bestScore(player);
   const dScore = bestScore(dealer);
-  // reveal dealer only if someone has blackjack
   if (pScore === 21 || dScore === 21) {
-    // reveal dealer card with flip animation
     revealDealerCardWithDelay(120);
     setTimeout(() => {
-      settleAndEnd(); // handle outcomes
+      settleAndEnd();
     }, 700);
   }
 }
 
 function revealDealerCardWithDelay(delay=0) {
-  // find first child wrapper and flip it
   const first = dealerCardsDiv.querySelector('.flip-wrapper');
   if (first) {
     setTimeout(() => flipToFront(first), delay);
@@ -240,23 +222,18 @@ function revealDealerCardWithDelay(delay=0) {
 
 function playerHit() {
   if (gameOver) return;
-  // draw card
   const c = deck.pop();
   player.push(c);
   const el = createCardElement(c, false);
-  // animate
-  const currentCount = playerCardsDiv.children.length;
   animateDeal(el, playerCardsDiv, 80, false);
 
   setTimeout(() => {
     updateScores(true);
     const ps = bestScore(player);
     if (ps > 21) {
-      // lose immediately
       revealDealerCardWithDelay(200);
       setTimeout(() => settleAndEnd(), 600);
     } else if (ps === 21) {
-      // auto-stand
       setTimeout(() => dealerTurn(), 300);
     }
   }, 400);
@@ -268,14 +245,12 @@ function playerStand() {
 }
 
 function dealerTurn() {
-  // reveal dealer upcard
   revealDealerCardWithDelay(120);
   btnHit.disabled = true;
   btnStand.disabled = true;
   updateScores(false);
   msg.textContent = 'Dealer zieht...';
 
-  // draw while <17 with animation
   const drawStep = () => {
     const score = bestScore(dealer);
     if (score < 17) {
@@ -288,22 +263,93 @@ function dealerTurn() {
         drawStep();
       }, 460);
     } else {
-      // finished dealer draws
       setTimeout(() => settleAndEnd(), 500);
     }
   };
 
-  // start after short pause
   setTimeout(() => drawStep(), 420);
 }
 
+/* ---------- Bankroll UI: numerisch + visueller Chip-Stapel ---------- */
+
+/**
+ * updateBankrollUI
+ * zeigt die numerische Bankroll und rendert die Chip-Stapel
+ */
+function updateBankrollUI() {
+  // numerisch
+  bankrollEl.textContent = bankroll;
+
+  // visuell: render chip stacks aus Bankroll
+  renderChipStack(bankroll);
+}
+
+/**
+ * renderChipStack(bankroll)
+ * Zerlegt die Bankroll in Chip-Denominierungen und zeigt kleine Stapel.
+ * Denoms: 100, 50, 25, 10, 5, 1
+ */
+function renderChipStack(amount) {
+  if (!bankrollStackEl) return;
+
+  // animate pulse on change
+  bankrollStackEl.classList.remove('pulse');
+  void bankrollStackEl.offsetWidth; // reflow to restart animation
+
+  // clear
+  bankrollStackEl.innerHTML = '';
+
+  let remaining = Math.max(0, Math.floor(amount));
+  const denoms = [100, 50, 25, 10, 5, 1];
+
+  // build stacks for denominations where count > 0
+  denoms.forEach(d => {
+    const count = Math.floor(remaining / d);
+    if (count > 0) {
+      remaining -= count * d;
+      const stack = document.createElement('div');
+      stack.className = 'chip-stack';
+
+      // show up to 4 visual chips stacked (for compactness)
+      const visible = Math.min(count, 4);
+      for (let i = 0; i < visible; i++) {
+        const pill = document.createElement('div');
+        pill.className = 'chip-pill chip-' + d;
+        pill.style.transform = `translateY(${ -i * 6 }px)`; // slight offset
+        pill.textContent = ''; // optional: could show small mark
+        stack.appendChild(pill);
+      }
+
+      // label with denom and count
+      const label = document.createElement('div');
+      label.className = 'chip-label';
+      label.textContent = `${d} × ${count}`;
+      stack.appendChild(label);
+
+      bankrollStackEl.appendChild(stack);
+    }
+  });
+
+  // if no chips (bankroll = 0), show empty text
+  if (amount <= 0) {
+    const note = document.createElement('div');
+    note.className = 'chip-label';
+    note.textContent = 'Kein Guthaben';
+    bankrollStackEl.appendChild(note);
+  }
+
+  // trigger pulse animation
+  setTimeout(() => bankrollStackEl.classList.add('pulse'), 18);
+}
+
+/* ---------- Settle / End (gleich wie vorher) ---------- */
 function settleAndEnd() {
   updateScores(false);
   const pScore = bestScore(player);
   const dScore = bestScore(dealer);
 
   let outcome = '';
-  let payout = 0; // positive if player wins, negative if loses
+  let payout = 0;
 
   if (pScore > 21) {
     outcome = 'Du hast überkauft (Bust).';
@@ -315,13 +361,11 @@ function settleAndEnd() {
     outcome = 'Unentschieden (Push). Einsatz zurück.';
     payout = 0;
   } else {
-    // Blackjack natural check (2 cards)
     const playerBlackjack = (pScore === 21 && player.length === 2);
     const dealerBlackjack = (dScore === 21 && dealer.length === 2);
 
     if (playerBlackjack && !dealerBlackjack) {
       outcome = 'Blackjack! Du gewinnst 3:2.';
-      // payout: 1.5 * bet
       payout = Math.floor(currentBet * 1.5);
     } else if (dealerBlackjack && !playerBlackjack) {
       outcome = 'Dealer hat Blackjack. Dealer gewinnt.';
@@ -335,23 +379,20 @@ function settleAndEnd() {
     }
   }
 
-  // apply payout: for push payout is 0 -> return bet
   if (payout === 0) {
-    bankroll += currentBet; // return bet
+    bankroll += currentBet;
   } else if (payout > 0) {
-    bankroll += currentBet + payout; // original bet + winnings
+    bankroll += currentBet + payout;
   } else {
-    // payout < 0 -> player already lost bet (we reserved it), nothing to add
+    // lost: bankroll unchanged because bet already reserved
   }
 
   updateBankrollUI();
 
-  // message
   msg.textContent = `${outcome} (Du: ${pScore} — Dealer: ${dScore})`;
   lastResult.textContent = `Einsatz: ${currentBet} € — Ergebnis: ${payout >= 0 ? '+'+payout+' €' : payout+' €'}`;
   gameOver = true;
 
-  // enable deal for next round if bankroll > 0
   setTimeout(() => {
     btnDeal.disabled = (bankroll <= 0);
     btnHit.disabled = true;
@@ -359,11 +400,7 @@ function settleAndEnd() {
   }, 300);
 }
 
-/* ---------- Utilities & Reset ---------- */
-function updateBankrollUI() {
-  bankrollEl.textContent = bankroll;
-}
-
+/* ---------- Reset & Utilities ---------- */
 function resetGame() {
   deck = [];
   player = [];
