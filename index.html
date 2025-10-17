@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Blackjack — GitHub Pages Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Blackjack</h1>
+
+    <section class="table">
+      <div class="hand dealer">
+        <h2>Dealer</h2>
+        <div class="cards" id="dealer-cards"></div>
+        <div class="score" id="dealer-score">—</div>
+      </div>
+
+      <div class="hand player">
+        <h2>Du</h2>
+        <div class="cards" id="player-cards"></div>
+        <div class="score" id="player-score">—</div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="buttons">
+        <button id="btn-deal">Geben</button>
+        <button id="btn-hit" disabled>Hit</button>
+        <button id="btn-stand" disabled>Stand</button>
+        <button id="btn-reset">Reset</button>
+      </div>
+
+      <div class="info">
+        <p id="message">Drücke „Geben“, um zu starten.</p>
+      </div>
+    </section>
+
+    <section class="rules">
+      <h3>Kurzregeln</h3>
+      <ul>
+        <li>Ziel: näher an 21 sein als der Dealer, ohne darüber zu gehen.</li>
+        <li>Asse zählen als 1 oder 11 (automatisch günstig ausgewertet).</li>
+        <li>Dealer zieht bis mindestens 17.</li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
