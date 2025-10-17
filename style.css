@@ -1,66 +1,293 @@
-<!doctype html>
-<html lang="de">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Blackjack — GitHub Pages Demo mit Einsatz & Animation</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <main class="container">
-    <h1>Blackjack</h1>
+/* Felt Table Edition - stark überarbeitetes Design
+   Ziel: Look & Feel wie ein echter Blackjack-Tisch
+*/
 
-    <section class="statusbar">
-      <div class="bankroll">
-        <label>Bankroll: <span id="bankroll">1000</span> €</label>
-      </div>
-      <div class="bet">
-        <label for="bet-input">Einsatz (€):</label>
-        <input type="number" id="bet-input" min="1" step="1" value="10" />
-      </div>
-      <div class="controls-short">
-        <button id="btn-deal">Geben</button>
-        <button id="btn-reset">Reset</button>
-      </div>
-    </section>
+:root{
+  --felt-1: #0b6b3a;     /* tiefer grünton (filz) */
+  --felt-2: #0e8a4a;     /* leicht hellere bande */
+  --felt-3: #083f26;     /* dunkle akzente */
+  --panel: rgba(0,0,0,0.45);
+  --card-face: #fff;
+  --muted: #cfe7d3;
+  --accent: #ffd166;
+  --glass: rgba(255,255,255,0.06);
+  --shadow-strong: 0 18px 50px rgba(2,8,6,0.6);
+  --chip-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  --glass-line: rgba(255,255,255,0.04);
+  --font-sans: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
 
-    <section class="table">
-      <div class="hand dealer">
-        <h2>Dealer</h2>
-        <div class="cards" id="dealer-cards"></div>
-        <div class="score" id="dealer-score">—</div>
-      </div>
+/* page background and vignette */
+*{box-sizing:border-box}
+html,body{height:100%; margin:0; font-family:var(--font-sans);}
+body{
+  background: radial-gradient(1200px 600px at 50% 10%, rgba(0,0,0,0.65), rgba(0,0,0,0.82)), linear-gradient(180deg,#061b12 0%, #021108 100%);
+  color:var(--card-face);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px;
+}
 
-      <div class="hand player">
-        <h2>Du</h2>
-        <div class="cards" id="player-cards"></div>
-        <div class="score" id="player-score">—</div>
-      </div>
-    </section>
+/* center wrapper */
+.table-wrapper{
+  width:100%;
+  max-width:1080px;
+  border-radius:20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.3));
+  padding:20px;
+  box-shadow:var(--shadow-strong);
+  position:relative;
+  overflow:hidden;
+  border: 1px solid rgba(255,255,255,0.03);
+}
 
-    <section class="controls">
-      <div class="buttons">
-        <button id="btn-hit" disabled>Hit</button>
-        <button id="btn-stand" disabled>Stand</button>
-      </div>
+/* topbar with logo & bankroll */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:8px 12px 14px;
+  border-bottom: 1px solid var(--glass-line);
+  margin-bottom:8px;
+}
+.logo{display:flex; gap:12px; align-items:center;}
+.logo-chip{
+  width:54px; height:54px;
+  background: radial-gradient(circle at 35% 30%, #ffd166, #ffb03b 30%, #c84b2a 70%);
+  color:#08110a;
+  font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:50%;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+  font-family:var(--font-serif);
+  font-size:18px;
+}
+.logo h1{margin:0; font-size:18px; font-weight:700; letter-spacing:0.6px;}
+.logo .subtitle{margin:0; color:var(--muted); font-size:12px; margin-top:2px;}
 
-      <div class="info">
-        <p id="message">Gib deinen Einsatz ein und drücke „Geben“. </p>
-        <p id="last-result" class="muted"></p>
-      </div>
-    </section>
+/* Bankroll panel */
+.bankroll-panel{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+  padding:8px 12px;
+  border-radius:10px;
+  text-align:right;
+  min-width:140px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5) inset;
+}
+.bankroll-label{font-size:12px; color:var(--muted); margin-bottom:2px;}
+.bankroll-amount{font-size:18px; font-weight:700; color:var(--accent);}
 
-    <section class="rules">
-      <h3>Kurzregeln</h3>
-      <ul>
-        <li>Ziel: näher an 21 sein als der Dealer, ohne darüber zu gehen.</li>
-        <li>Asse zählen als 1 oder 11 (automatisch günstig ausgewertet).</li>
-        <li>Dealer zieht bis mindestens 17.</li>
-        <li>Blackjack (natürlich) zahlt 3:2.</li>
-      </ul>
-    </section>
-  </main>
+/* table surface: semi-circular green felt */
+.table-surface{
+  padding:18px 28px 6px;
+  display:flex;
+  justify-content:center;
+}
+.table-top{
+  width:100%;
+  max-width:920px;
+  position:relative;
+  border-radius:28px;
+  background: linear-gradient(180deg, var(--felt-1), var(--felt-2));
+  padding:28px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 3px 10px rgba(255,255,255,0.03);
+  border: 6px solid rgba(0,0,0,0.35);
+  overflow:visible;
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+/* soft oval glow in center */
+.table-inner-glow{
+  position:absolute;
+  left:50%;
+  top:40%;
+  transform:translate(-50%,-40%);
+  width:70%;
+  height:40%;
+  background: radial-gradient(closest-side, rgba(255,255,255,0.06), rgba(0,0,0,0));
+  filter: blur(18px);
+  pointer-events:none;
+}
+
+/* Dealer / Player zone layout */
+.dealer-zone, .player-zone{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.dealer-zone{margin-bottom:18px;}
+.player-zone{margin-top:8px;}
+
+/* labels */
+.zone-label{
+  font-family:var(--font-serif);
+  font-size:16px;
+  color:rgba(255,255,255,0.95);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+
+/* cards area */
+.cards{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  justify-content:center;
+  min-height:110px;
+  perspective: 1000px;
+  margin-top:6px;
+}
+
+/* card base styling - larger, table appropriate */
+.card{
+  width:92px;
+  height:124px;
+  border-radius:10px;
+  background:var(--card-face);
+  color:#111;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  font-weight:700;
+  transform-origin:center;
+}
+
+/* red suits */
+.card.red{color:#c62828}
+
+/* flipped/back face styling for 3D flip (keep consistent with app.js) */
+.flip-wrapper{ width:92px; height:124px; position:relative; }
+.flip{ width:100%; height:100%; transform-style:preserve-3d; transition: transform 520ms cubic-bezier(.2,.8,.2,1); position:relative; }
+.flip.flipped{ transform: rotateY(180deg); }
+.face, .backface{ position:absolute; inset:0; border-radius:10px; backface-visibility:hidden; overflow:hidden; }
+.face{ transform: rotateY(0deg); }
+.backface{ transform: rotateY(180deg); background: linear-gradient(135deg,#094a37,#063822); color: transparent; display:flex; align-items:center; justify-content:center; font-size:28px; }
+
+/* subtle card number style */
+.card div:first-child{ font-size:20px; }
+.card div:last-child{ font-size:20px; }
+
+/* deal animation */
+@keyframes dealFromTop {
+  0% { transform: translateY(-80px) scale(0.6) rotate(-8deg); opacity:0; }
+  60% { transform: translateY(6px) scale(1.02) rotate(2deg); opacity:1; }
+  100% { transform: translateY(0) scale(1) rotate(0); opacity:1; }
+}
+.card.deal-anim{ animation: dealFromTop 360ms cubic-bezier(.2,.8,.2,1); }
+
+/* scores */
+.score{
+  margin-top:8px;
+  font-size:16px;
+  color:var(--muted);
+  background: rgba(0,0,0,0.15);
+  padding:6px 10px;
+  border-radius:8px;
+  box-shadow: inset 0 -2px 6px rgba(0,0,0,0.2);
+}
+
+/* controls panel */
+.controls-panel{
+  display:flex;
+  gap:18px;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:16px;
+  padding:18px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(255,255,255,0.02));
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.02);
+}
+
+/* betting area */
+.bet-controls{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:220px;
+}
+.bet-label{font-size:13px; color:var(--muted); font-weight:600;}
+#bet-input{
+  width:140px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:0;
+  font-size:16px;
+  font-weight:700;
+  color:#08311e;
+  background:linear-gradient(180deg,#fff,#f4fffb);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25) inset;
+}
+
+/* chip row */
+.chip-row{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+.chip{
+  width:44px; height:44px; border-radius:50%;
+  border:6px solid #fff;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-weight:700; cursor:pointer;
+  box-shadow: var(--chip-shadow);
+  background: radial-gradient(circle at 30% 30%, #ffd166, #ffb03b 30%, #d85c2a 60%);
+  color:#0b1911;
+  transform: translateY(0);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  user-select:none;
+}
+.chip[data-bet="10"]{ background: radial-gradient(circle at 30% 30%, #fff, #e6e6e6); color:#08110a; }
+.chip[data-bet="25"]{ background: radial-gradient(circle at 30% 30%, #f2f2f2, #d9d9d9); color:#08110a; border-color:#fff; }
+.chip[data-bet="50"]{ background: radial-gradient(circle at 30% 30%, #f0c; #d09); color:#fff; }
+.chip[data-bet="100"]{ background: radial-gradient(circle at 30% 30%, #4dd0e1, #00838f); color:#002b30; }
+.chip[data-bet="all"]{ background: linear-gradient(135deg,#111, #333); color:#fff; border-color:#ddd; }
+
+/* active chip pulse */
+.chip-active{ transform: translateY(-6px) scale(1.06); box-shadow: 0 14px 28px rgba(0,0,0,0.55); }
+
+/* action buttons */
+.action-controls{ display:flex; gap:10px; align-items:center; }
+.btn{
+  min-width:86px;
+  padding:12px 14px;
+  border-radius:12px;
+  border:0;
+  cursor:pointer;
+  font-weight:700;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+.btn-deal{ background: linear-gradient(180deg,#ffd166,#ffb03b); color:#13210a; }
+.btn-hit{ background: linear-gradient(180deg,#2ecc71,#219653); color:#fff; }
+.btn-stand{ background: linear-gradient(180deg,#ff6b6b,#e63946); color:#fff; }
+.btn-reset{ background: transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04); }
+
+/* disabled look */
+button:disabled, .btn[disabled]{
+  opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none;
+}
+
+/* messages */
+.messages{ flex:1; padding-left:12px; }
+.message{ margin:0; font-size:15px; color:var(--muted); }
+.muted{ margin:6px 0 0; font-size:13px; color:rgba(255,255,255,0.6); }
+
+/* footer */
+.footer{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; color:var(--muted); font-size:13px; opacity:0.95; }
+
+/* responsive */
+@media (max-width:900px){
+  .topbar{ flex-direction:column; align-items:flex-start; gap:8px; }
+  .controls-panel{ flex-direction:column; align-items:stretch; gap:12px; }
+  .action-controls{ justify-content:flex-start; }
+  .bet-controls{ width:100%; }
+  .table-top{ padding:18px; }
+  .cards{ gap:8px; }
+  .card{ width:76px; height:104px; }
+  .flip-wrapper{ width:76px; height:104px; }
+}
+
+/* tiny polish for accessibility focus */
+button:focus, input:focus { outline: 3px solid rgba(255,209,102,0.18); outline-offset:2px; border-radius:8px; }
