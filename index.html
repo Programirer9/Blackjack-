@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Blackjack — Felt Table Edition</title>
+  <title>Blackjack — Multi-Player (3 Spieler)</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
@@ -16,21 +16,20 @@
           <span class="logo-chip">BJ</span>
           <div>
             <h1>Blackjack</h1>
-            <p class="subtitle">Felt Table Edition</p>
+            <p class="subtitle">Felt Table — 3 Players</p>
           </div>
         </div>
 
         <div class="bankroll-panel">
           <div class="bankroll-label">Bankroll</div>
           <div class="bankroll-amount"><span id="bankroll">1000</span> €</div>
-
-          <!-- NEU: Visuelle Chip-Stapel anzeigen -->
-          <div id="bankroll-stack" class="bankroll-stack" aria-hidden="false" title="Visuelle Darstellung der Bankroll"></div>
+          <div id="bankroll-stack" class="bankroll-stack" title="Visuelle Darstellung der Bankroll"></div>
         </div>
       </header>
 
       <section class="table-surface">
         <div class="table-top">
+          <!-- Dealer zone top center -->
           <div class="dealer-zone">
             <div class="zone-label">Dealer</div>
             <div class="cards" id="dealer-cards" aria-live="polite"></div>
@@ -39,10 +38,25 @@
 
           <div class="table-inner-glow"></div>
 
-          <div class="player-zone">
-            <div class="zone-label">Du</div>
-            <div class="cards" id="player-cards" aria-live="polite"></div>
-            <div class="score" id="player-score">—</div>
+          <!-- Players row: 3 players -->
+          <div class="players-row">
+            <div class="player-zone" id="player1-zone">
+              <div class="zone-label">Du</div>
+              <div class="cards" id="player-cards" aria-live="polite"></div>
+              <div class="score" id="player-score">—</div>
+            </div>
+
+            <div class="player-zone" id="player2-zone">
+              <div class="zone-label">Player 2 (Bot)</div>
+              <div class="cards" id="player2-cards" aria-live="polite"></div>
+              <div class="score" id="player2-score">—</div>
+            </div>
+
+            <div class="player-zone" id="player3-zone">
+              <div class="zone-label">Player 3 (Bot)</div>
+              <div class="cards" id="player3-cards" aria-live="polite"></div>
+              <div class="score" id="player3-score">—</div>
+            </div>
           </div>
         </div>
       </section>
@@ -85,7 +99,7 @@
 
   <script src="app.js"></script>
 
-  <!-- kleines UI-Skript für Chips (ändert nur Bet-Feld; hält app.js unverändert) -->
+  <!-- Quick-bet chip helper (unverändert) -->
   <script>
     (function(){
       const chips = document.querySelectorAll('.chip');
@@ -108,7 +122,6 @@
             const cur = parseInt(betInput.value || '0',10) || 0;
             betInput.value = Math.max(1, Math.min(bankroll, cur + add));
           }
-          // small pulse effect
           btn.classList.add('chip-active');
           setTimeout(()=>btn.classList.remove('chip-active'),220);
         });
